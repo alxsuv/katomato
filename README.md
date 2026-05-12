@@ -12,25 +12,22 @@ Modular automation system for indoor plant environments, built with Arduino and 
 
 ## Features
 
-- **Climate And Soil Moisture Control**
-- **Data Logging & Visualization:** Backed by InfluxDB, enabling time-series data storage and interactive dashboard
-  visualization through its built-in UI.
-- **Modular Architecture:** Structured around interchangeable sensor and actuator modules (e.g., alarms, lights, pumps).
-  Devices can be added or removed by plugging them into well-defined integration points, without altering the system’s
-  core logic. The core of the system is generic and reusable, supporting any combination of
-  devices for any purpose.
-- **Python Control App:** Receives sensor data from Arduino, makes control decisions, sends commands to actuators. CLI-based
-  manual override is supported.
-- **Dockerized Deployment:** Python app and InfluxDB run in isolated container.
+- **Climate and Soil Moisture Control** — Maintains target temperature, humidity, and soil moisture through closed-loop
+  feedback between sensors and actuators.
+- **Data Logging & Visualization** — Persists all sensor readings to InfluxDB, with interactive time-series dashboards
+  available through its built-in UI.
+- **Plug-and-Play Architecture** — Sensors, actuators, controllers, and devices attach through well-defined integration
+  points. Adding or removing a component requires no changes to the core logic on either side.
+- **Python Control App** — Receives sensor data from Arduino, applies control rules, and sends commands back to
+  actuators. Supports CLI-based manual override.
+- **Dockerized Deployment** — Python app and InfluxDB run in isolated containers.
 
 ## Project Structure
 
-- `app/`: Python application (`katomato`) that communicates with embedded devices, controls actuators, and logs data
-  to InfluxDB.
-- `arduino/`: PlatformIO-based firmware for Arduino-compatible boards, responsible for reading sensors and receiving
-  control commands.
-- `docs/`: Project documentation.
-- `Makefile`: Unification of dev commands across both environments.
+- `app/` — Python application that communicates with the Arduino, drives actuator logic, and logs data to InfluxDB.
+- `arduino/` — PlatformIO-based firmware for Arduino-compatible boards; reads sensors and executes control commands.
+- `docs/` — Project documentation.
+- `Makefile` — Unified dev commands across both environments.
 
 ## Quick Start
 
@@ -42,34 +39,40 @@ Modular automation system for indoor plant environments, built with Arduino and 
 
 ### Installation
 
-🚧 the section is under development...
+```bash
+# Install dependencies
+pip3 install platformio
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Clone the repository
+git clone https://github.com/<your-repo>/katomato.git
+cd katomato
+
+# Build and run
+make build-arduino
+make upload-arduino
+make up
+```
 
 > See [Setup guide](docs/setup-guide.md) for detailed instructions.
 
-## Architecture (High-Level Overview)
+## Architecture
 
 <p align="center">
     <img src="assets/architecture-diagram.png" alt="architecture diagram" width="1000"/>
 </p>
 
-- Sensors on Arduino read physical data (temperature, humidity, moisture, smoke, etc.).
-- Arduino encodes readings into a unified JSON message.
-- Python server receives the JSON, validates it, and routes the data to registered Controllers.
-- Controllers pass structured data to Devices. Controllers control certain conditions like temperature or humidity but 
-devices contain actuator behavior logic.
-- Devices publish commands into a message queue.
-- Server Core consumes the queue and sends commands back to Arduino.
-- Arduino Core receives the command and sends it to the appropriate Control (fan, light, relay, etc.).
-- All sensor data is persisted to InfluxDB and visualize it through its built-in UI.
-- Add/remove Sensors, Controls, Devices, Controllers → without touching the Core on either side.
+Arduino sensors sample the physical environment and stream structured JSON to the Python server over serial.
+The server validates each reading, routes it to the appropriate controller, and the controller decides what action
+the connected devices should take. Devices translate those actions into hardware commands and place them on an
+internal queue; the server core drains the queue and sends the commands back to Arduino, which forwards them to the
+corresponding actuator. Every sensor reading is also published to InfluxDB for historical analysis and dashboarding.
 
-This makes the system:
-- Extensible
-- Hardware-agnostic
-- Behavior-agnostic
-- Easy to integrate into any automation scenario
+Both sides — firmware and server — follow the same principle: a generic core handles data flow, while
+domain-specific modules (sensors, controls, controllers, devices) plug in through a registration mechanism.
+Nothing in the core needs to change when a module is added or removed.
 
-> See the [Architecture overview](docs/architecture-overview.md) for details.
+> See the [Architecture overview](docs/architecture-overview.md) for a detailed breakdown.
 
 ## Development
 > See [Development guide](docs/development-guide.md).
