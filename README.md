@@ -74,14 +74,8 @@ Nothing in the core needs to change when a module is added or removed.
 
 > See the [Architecture overview](docs/architecture-overview.md) for a detailed breakdown.
 
-## Development
-> See [Development guide](docs/development-guide.md).
-
 ## Electric circuit
 > See [Circuit and specification](docs/electrical-circuit.md).
-
-## Assembly
-> See [Assembly guide](docs/assembly-guide.md).
 
 ## License
 
